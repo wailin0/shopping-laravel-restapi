@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductResource;
+use App\Models\Brand;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -10,28 +12,41 @@ class ProductController extends Controller
 
     public function index()
     {
-        return Product::all();
+        return Product::with('brand')->get();
     }
-
 
     public function store(Request $request)
     {
+        $data = $request->validate([
+            'name' => 'required|string',
+            'images' => 'required|array',
+            'image_url' => 'required',
+            'how_to_use' => 'required|string',
+            'description' => 'required|string',
+            'ingredients' => 'required|string',
+            'price' => 'required',
+            'stock' => 'required'
+        ]);
 
-        return Product::create($request->all());
+        $brand = Brand::find($request->brand_id);
+        if (!$brand) {
+            return response('brand not found');
+        }
+        $product = $brand->products()->create($request->all());
+        $product->images()->createMany($request->images);
+
+        return new ProductResource($product);
     }
-
 
     public function show($id)
     {
-        return Product::find($id);
+        return new ProductResource(Product::find($id));
     }
-
 
     public function search($name)
     {
-        return Product::where('name', 'like', '%' . $name . '%')->get();
+        return new ProductResource(Product::where('name', $name)->get()->first());
     }
-
 
     public function update(Request $request, $id)
     {

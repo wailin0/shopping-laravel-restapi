@@ -6,19 +6,21 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController extends Controller
+class UserController extends Controller
 {
     public function register(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
+            'phone' => 'string',
             'password' => 'required|string|confirmed'
         ]);
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'phone' => $data['phone'],
             'password' => bcrypt($data['password']),
         ]);
 
